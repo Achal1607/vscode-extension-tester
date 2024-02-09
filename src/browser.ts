@@ -14,6 +14,7 @@ export class VSBrowser {
     static readonly browserName = 'vscode';
     private storagePath: string;
     private extensionsFolder: string | undefined;
+    private extensionDevelopmentPath: string | undefined;
     private customSettings: Object;
     private _driver!: WebDriver;
     private codeVersion: string;
@@ -24,6 +25,7 @@ export class VSBrowser {
     constructor(codeVersion: string, releaseType: ReleaseQuality, customSettings: Object = {}, logLevel: logging.Level = logging.Level.INFO) {
         this.storagePath = process.env.TEST_RESOURCES ? process.env.TEST_RESOURCES : path.resolve(DEFAULT_STORAGE_FOLDER);
         this.extensionsFolder = process.env.EXTENSIONS_FOLDER ? process.env.EXTENSIONS_FOLDER : undefined;
+        this.extensionDevelopmentPath = process.env.EXTENSION_DEV_PATH ? process.env.EXTENSION_DEV_PATH : undefined;
         this.customSettings = customSettings;
         this.codeVersion = codeVersion;
         this.releaseType = releaseType;
@@ -75,6 +77,8 @@ export class VSBrowser {
                 fs.copyFileSync(path.resolve(__dirname, '..', '..', 'resources', 'state.vscdb'), path.join(userSettings, 'globalStorage', 'state.vscdb'));
             }
             args.push(`--extensionDevelopmentPath=${process.cwd()}`);
+        } else if(this.extensionDevelopmentPath) {
+            args.push(`--extensionDevelopmentPath=${this.extensionDevelopmentPath}`);
         }
 
         let options = new Options().setChromeBinaryPath(codePath).addArguments(...args) as any;
@@ -180,7 +184,7 @@ export class VSBrowser {
             return;
         }
 
-        const code = new CodeUtil(this.storagePath, this.releaseType, this.extensionsFolder);
+        const code = new CodeUtil(this.storagePath, this.releaseType, this.extensionsFolder, this.extensionDevelopmentPath);
         code.open(...paths);
         await new Promise(res => setTimeout(res, 3000));
         await this.waitForWorkbench();
