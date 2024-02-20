@@ -45,8 +45,8 @@ export class ExTester {
     private code: CodeUtil;
     private chrome: DriverUtil;
 
-    constructor(storageFolder: string = DEFAULT_STORAGE_FOLDER, releaseType: ReleaseQuality = ReleaseQuality.Stable, extensionsDir?: string) {
-        this.code = new CodeUtil(storageFolder, releaseType, extensionsDir);
+    constructor(storageFolder: string = DEFAULT_STORAGE_FOLDER, releaseType: ReleaseQuality = ReleaseQuality.Stable, extensionsDir?: string, extensionDevPath?: string) {
+        this.code = new CodeUtil(storageFolder, releaseType, extensionsDir, extensionDevPath);
         this.chrome = new DriverUtil(storageFolder);
 
         if (process.versions.node > NODEJS_VERSION_MAX) {
@@ -134,7 +134,11 @@ export class ExTester {
                 console.log(`Attempting with ChromeDriver ${actualChromeVersion} anyway. Tests may experience issues due to version mismatch.`);
             }
         }
-        await this.installVsix({useYarn});
+        if (!this.code.extensionDevPath) {
+            await this.code.packageExtension(useYarn);
+        } else {
+            await this.installVsix({useYarn});
+        }
         if (installDependencies && !offline) {
             this.code.installDependencies();
         }
